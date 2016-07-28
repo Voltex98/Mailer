@@ -1,4 +1,5 @@
 var fs = require('fs');
+var host = fs.readFileSync('host_info.txt', 'utf8');
 var express = require('express'),
 app = express(),
 http = require('http'),
@@ -18,7 +19,7 @@ var to = '';
 var content = '';
 var nodemailer = require('nodemailer');
 var transport = nodemailer.createTransport("SMTP", {
-    host: fs.readFileSync('host_info.txt', 'utf8')
+    host: host
 });
 var mailOptions = {
 	from: 'test@testing.com',
