@@ -1,3 +1,4 @@
+var fs = require('fs');
 var express = require('express'),
 app = express(),
 http = require('http'),
@@ -17,7 +18,7 @@ var to = '';
 var content = '';
 var nodemailer = require('nodemailer');
 var transport = nodemailer.createTransport("SMTP", {
-    host: '223.130.121.106'
+    host: fs.readFileSync('host_info.txt', 'utf8')
 });
 var mailOptions = {
 	from: 'test@testing.com',
@@ -68,7 +69,7 @@ function smtpSet(data_to, data_sub, data_cot) {
 		connection.query('select * from mail', function (error, result, fields) {
     if (error) {
         console.log(error);
-        console.log('쿼리 문장에 오류가 있습니다.');
+        console.log('쿼리문에 오류가 있습니다.');
     } else {
         console.log(result);
         console.log('---------------')
