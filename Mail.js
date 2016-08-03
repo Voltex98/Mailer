@@ -39,12 +39,16 @@ app.get('/', function(req, res) {
 });
 
 app.post('/send', function(req, res) {
-	sender = req.body.sender;
-	subject = req.body.mailsub;
-	to = req.body.mailto
-	content = req.body.content;
-	res.send('발송 요청 하였습니다. 발송 목록에서 상태를 확인할 수 있습니다.');
-	sendMail();
+	if (req.body.mailto == '') {
+		res.send('받는 사람을 입력해주세요.')
+	} else {
+		sender = req.body.sender;
+		subject = req.body.mailsub;
+		to = req.body.mailto
+		content = req.body.content;
+		res.send('발송 요청 하였습니다. 발송 목록에서 상태를 확인할 수 있습니다.');
+		sendMail();
+	}
 });
 
 function ipChange() {
@@ -137,7 +141,6 @@ function sendRequest(count) {
     		    console.log('쿼리문에 오류가 있습니다.');
     		} else {
     			console.log('DB 작성 완료')
-    		    console.timeEnd('sending_time');
     		}
 		});
 		}
@@ -151,6 +154,8 @@ function sendRequest(count) {
 	}
 
 	});
+
+	console.timeEnd('sending_time');
 }
 
 server.listen(80);

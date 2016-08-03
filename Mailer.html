@@ -1,226 +1,25 @@
 <!DOCTYPE html>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <head>
-<style type="text/css">
-  /*
- * Globals
- */
-
-/* Links */
-a,
-a:focus,
-a:hover {
-  color: #fff;
-}
-
-/* Custom default button */
-.btn-default,
-.btn-default:hover,
-.btn-default:focus {
-  color: #333;
-  text-shadow: none; /* Prevent inheritence from `body` */
-  background-color: #fff;
-  border: 1px solid #fff;
-}
-
-
-/*
- * Base structure
- */
-
-html,
-body {
-  height: 100%;
-  background-color: #333;
-}
-body {
-  color: #fff;
-  text-align: center;
-  text-shadow: 0 1px 3px rgba(0,0,0,.5);
-}
-
-/* Extra markup and styles for table-esque vertical and horizontal centering */
-.site-wrapper {
-  display: table;
-  width: 100%;
-  height: 100%; /* For at least Firefox */
-  min-height: 100%;
-  -webkit-box-shadow: inset 0 0 100px rgba(153, 204, 255,.5);
-          box-shadow: inset 0 0 100px rgba(153, 204, 255,.5);
-}
-.site-wrapper-inner {
-  display: table-cell;
-  vertical-align: top;
-}
-.cover-container {
-  margin-right: auto;
-  margin-left: auto;
-}
-
-/* Padding for spacing */
-.inner {
-  padding: 100px;
-  vertical-align: top;
-}
-
-
-/*
- * Header
- */
-.masthead-brand {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.masthead-nav > li {
-  display: inline-block;
-}
-.masthead-nav > li + li {
-  margin-left: 20px;
-}
-.masthead-nav > li > a {
-  padding-right: 0;
-  padding-left: 0;
-  font-size: 16px;
-  font-weight: bold;
-  color: #fff; /* IE8 proofing */
-  color: rgba(153, 204, 255,.75);
-  border-bottom: 2px solid transparent;
-}
-.masthead-nav > li > a:hover,
-.masthead-nav > li > a:focus {
-  background-color: transparent;
-  border-bottom-color: #99ccff;
-  border-bottom-color: rgba(153, 204, 255,.25);
-}
-.masthead-nav > .active > a,
-.masthead-nav > .active > a:hover,
-.masthead-nav > .active > a:focus {
-  color: #fff;
-  border-bottom-color: #fff;
-}
-
-@media (min-width: 768px) {
-  .masthead-brand {
-    float: left;
-  }
-  .masthead-nav {
-    float: right;
-  }
-}
-
-
-/*
- * Cover
- */
-
-.cover {
-  padding: 0 20px;
-}
-.cover .btn-lg {
-  padding: 10px 20px;
-  font-weight: bold;
-}
-
-
-/*
- * Footer
- */
-
-.mastfoot {
-  color: #999; /* IE8 proofing */
-  color: rgba(255,255,255,.5);
-}
-
-
-/*
- * Affix and center
- */
-
-@media (min-width: 768px) {
-  /* Pull out the header and footer */
-  .masthead {
-    position: fixed;
-    top: 0;
-  }
-  .mastfoot {
-    position: fixed;
-    bottom: 0;
-  }
-  /* Start the vertical centering */
-  .site-wrapper-inner {
-    vertical-align: top;
-  }
-  /* Handle the widths */
-  .masthead,
-  .mastfoot,
-  .cover-container {
-    width: 100%; /* Must be percentage or pixels for horizontal alignment */
-  }
-}
-
-@media (min-width: 992px) {
-  .masthead,
-  .mastfoot,
-  .cover-container {
-    width: 100%;
-  }
-}
-
-#p-subject,
-#p-content {
-  text-align: left;
-  float: left;
-  vertical-align: top;
-  padding-left: 20px;
-  padding-right: 47px;
-  padding-top: 5px;
-}
-
-#p-to {
-  text-align: left;
-  float: left;
-  vertical-align: top;
-  padding-left: 20px;
-  padding-top: 5px;
-}
-
-#mail2,
-#mail1 {
-  vertical-align: top;
-  width: 75%;
-}
-
-#mail2,
-#btn-list,
-#btn-extlist {
-  display: inline;
-}
-
-#mail-send {
-  vertical-align: bottom;
-}
-
-#mail-sub1,
-#mail-sub2,
-#mail-sub3 {
-  height: auto;
-}
-
-.tab-content {
-  table-layout: auto;
-}
-</style>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-<script src="http://cdn.ckeditor.com/4.5.10/standard/ckeditor.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<link rel="stylesheet" href="//s3.ap-northeast-2.amazonaws.com/mailerhost/Mailer.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="//cdn.ckeditor.com/4.5.10/standard/ckeditor.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.core.min.js"></script>
 </head>
 <body>
 <script>
 
 $(function() {
   var mail_to = [];
+  var oFileIn;
+
+  oFileIn = document.getElementById('my_file_input');
+    if (oFileIn.addEventListener) {
+      oFileIn.addEventListener('change', handleFile, false);
+    }
+
   CKEDITOR.replace('editor1',
     {height: '550px'});
 
@@ -245,8 +44,38 @@ $(function() {
 
   });
 
+function handleFile(e) {
+  try {
+  var files = e.target.files;
+  var i, f;
+  for (i = 0, f = files[i]; i != files.length; ++i) {
+    var reader = new FileReader();
+    var name = f.name;
+    var extension = f.name.split('.');
+    if (extension[extension.length - 1] !== 'xlsx') throw err;
+    reader.onload = function(e) {
+      var data = e.target.result;
+      var workbook = XLSX.read(data, {type: 'binary'});
+      var sheet_name_list = workbook.SheetNames;
+      sheet_name_list.forEach(function(y) {
+      var worksheet = workbook.Sheets[y];
+      for (z in worksheet) {
+        if(z[0] === '!') continue;
+          addTable(mail_to.push(JSON.stringify(worksheet[z].v).replace(/"/g, '')));
+      }
+    });
+  };
+  reader.readAsBinaryString(f);
+}
+  oFileIn.addEventListener('change', handleFile, false);
+  alert('리스트를 불러왔습니다.');
+  } catch(err) {
+    alert('지원하지 않는 파일입니다.');
+  }
+}
+
   function validateEmail(email) {
-    var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+    var re = /^([0-9a-zA-Z_-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
     return re.test(email);
   }
 
@@ -282,8 +111,8 @@ $(function() {
     var checkCount = $obj.size();
     for (var i=checkCount; i>=0; i--) {
       if ($obj.eq(i).is(":checked")) {
-      //console.log($obj.eq(i).parent())
       $obj.eq(i).parent().parent().remove();
+      mail_to.splice(i, 1);
       }
     }
   }
@@ -293,7 +122,7 @@ $(function() {
   }
 
   function mail_submit() {
-    $.post("send", {mailsub: $('#mail1').val(), content: CKEDITOR.instances['editor'].getData(), mailto: mail_to.join()},
+    $.post("send", {mailsub: $('#mail1').val(), sender: $('#mailsender').val(), content: CKEDITOR.instances['editor'].getData(), mailto: mail_to.join()},
       function (data) {
         alert(data);
       })
@@ -305,14 +134,16 @@ $(function() {
     <div class="site-wrapper-inner">
       <div class="cover-container">
         <div class="inner">
+
           <ul class="nav nav-tabs">
             <li class="active"><a data-toggle="tab" href="#home">메일 발송</a></li>
             <li><a data-toggle="tab" href="#menu1">발송 내역</a></li>
           </ul>
 
           <div class="tab-content">
-            <form id="form1" method="post" action="send">
+            
             <div id="home" class="tab-pane fade in active">
+            <form id="form1" method="post" action="send">
               <h3>메일 발송</h3>
                   <ul class="list-group">
                     <li id="mail-sub1" class="list-group-item">
@@ -320,28 +151,49 @@ $(function() {
                       <input name="mailsub" type="text" id="mail1" class="form-control" placeholder="메일 제목 입력">
                     </li>
                     <li id="mail-sub2" class="list-group-item">
+                      <p id="p-sender"><b>보내는 사람 :</b></p>
+                      <input name="mailsender" type="text" id="mail1" class="form-control" placeholder="보내는 사람 입력">
+                    </li>
+                    <li id="mail-sub3" class="list-group-item">
                     <p id="p-to"><b>받는 사람 :</b></p>
                       <input name="mailto" type="text" id="mail2" class="form-control" placeholder="받는 사람 입력" data-toggle="tooltip" title="엔터를 누르면 목록에 추가됩니다.">
                       <button id="btnlist" type="button" class="btn btn-default" data-toggle="modal" data-target="#mail_popup">목록 보기</button>
-                      <button id="btn-extlist" type="button" class="btn btn-default">외부 목록 불러오기</button>
+                      <button id="btn-extlist" type="button" class="btn btn-default" data-toggle="modal" data-target="#list_popup">외부 목록 불러오기</button>
                     </li>
-                    <li id="mail-sub3" class="list-group-item">
+                    <li id="mail-sub4" class="list-group-item">
                       <textarea id="editor" name="editor1"></textarea>
                       <br>
                     </li>
                     <li class="list-group-item">
-                      <button id="mail-send" type="submit" class="btn btn-default">전송</button>
-                      <button id="mail-send2" type="button" class="btn btn-default">전송2</button>
+                      <button id="mail-send2" type="button" class="btn btn-default">전송</button>
                     </li>
                   </ul>
                   <br>
+              </form>
             </div>
-            </form>
-          </div>
-          <div id="menu1" class="tab-pane fade">
+            
+            <div id="menu1" class="tab-pane">
               <h3>발송 내역</h3>
               <p>발송 내역</p>
+            </div>
+
           </div>
+          <div id="list_popup" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 class="modal-title">외부 리스트로 보내기</h4>
+                </div>
+                  <div class="modal-body">
+                    <input type="file" id="my_file_input" />
+                    <div id='my_file_output'></div>
+                    지원 가능 파일 : 엑셀 파일(.xlsx), 텍스트 파일(.txt)
+                  </div>
+              </div>
+            </div>
+          </div>
+
           <div id="mail_popup" class="modal fade" role="dialog">
             <div class="modal-dialog">
               <div class="modal-content">
@@ -362,9 +214,8 @@ $(function() {
                     </div>
                   </div>
               </div>
-
-  </div>
-</div>
+            </div>
+          </div>
         </div>
       </div>
         <div class="inner cover">
