@@ -13,12 +13,37 @@
 
 $(function() {
   var mail_to = [];
-  var oFileIn;
+  var toggle = false;
 
-  oFileIn = document.getElementById('my_file_input');
-    if (oFileIn.addEventListener) {
-      oFileIn.addEventListener('change', handleFile, false);
+  $("#my_file_input").on('change', function(e) {
+
+    var files = e.target.files;
+    var i, f;
+    var reader = new FileReader();
+    for (i = 0, f = files[i]; i != files.length; ++i) {
+      reader.onload = function(e) {
+        var data = e.target.result;
+        try {
+          var excel = XLSX.read(data, {type: 'binary'});
+        } catch(e) {
+          alert('지원하지 않는 파일입니다.');
+          return;
+        }
+        console.log(excel);
+        var sheet_list = excel.SheetNames;
+        sheet_list.forEach(function(s_name) {  
+          var worksheet = excel.Sheets[s_name];
+          for (addr in worksheet) {
+            if (addr[0] === '!') continue;
+            var data = worksheet[addr].v;
+            mail_to.push(data);
+          }
+        });
+      };
+      reader.readAsBinaryString(f);
     }
+
+  });
 
   CKEDITOR.replace('editor1',
     {height: '550px'});
@@ -44,51 +69,17 @@ $(function() {
 
   });
 
-function handleFile(e) {
-  try {
-  var files = e.target.files;
-  var i, f;
-  for (i = 0, f = files[i]; i != files.length; ++i) {
-    var reader = new FileReader();
-    var name = f.name;
-    var extension = f.name.split('.');
-    if (extension[extension.length - 1] !== 'xlsx') throw err;
-    reader.onload = function(e) {
-      var data = e.target.result;
-      var workbook = XLSX.read(data, {type: 'binary'});
-      var sheet_name_list = workbook.SheetNames;
-      sheet_name_list.forEach(function(y) {
-      var worksheet = workbook.Sheets[y];
-      for (z in worksheet) {
-        if(z[0] === '!') continue;
-          addTable(mail_to.push(JSON.stringify(worksheet[z].v).replace(/"/g, '')));
-      }
-    });
-  };
-  reader.readAsBinaryString(f);
-}
-  oFileIn.addEventListener('change', handleFile, false);
-  alert('리스트를 불러왔습니다.');
-  } catch(err) {
-    alert('지원하지 않는 파일입니다.');
-  }
-}
-
   function validateEmail(email) {
-    var re = /^([0-9a-zA-Z_-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
-    return re.test(email);
+    var regex = /^([0-9a-zA-Z_-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
+    return regex.test(email);
   }
 
-  function selectAll(status) {
+  function selectAll() {
+    toggle = !toggle;
     $('input[name=chk]').each(function() {
-      $(this).prop('checked', status);
+      $(this).prop('checked', toggle);
     });
   }
-
-  $('#chk_all').click(function() {
-    console.log($(this).is(':checked'));
-    selectAll($(this).is(':checked'));
-  });
 
   $('#del').click(function() {
     rowCheckDel();
@@ -123,9 +114,9 @@ function handleFile(e) {
 
   function mail_submit() {
     $.post("send", {mailsub: $('#mail1').val(), sender: $('#mailsender').val(), content: CKEDITOR.instances['editor'].getData(), mailto: mail_to.join()},
-      function (data) {
+      function(data) {
         alert(data);
-      })
+    });
   }
 
 });
@@ -205,7 +196,7 @@ function handleFile(e) {
                     <div id="mail_list">
                       <table id="lst" class="table table-bordered">
                         <tr>
-                          <th>모두 선택 : <input type="checkbox" id="chk_all"></th>
+                          <th>모두 선택 : <input onclick="selectAll" type="checkbox" id="chk_all"></th>
                           <th>메일 주소</th>
                         </tr>
                         <tbody></tbody>

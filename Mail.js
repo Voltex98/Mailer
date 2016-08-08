@@ -7,7 +7,6 @@ var fs = require('fs');
 var bodyParser = require("body-parser");
 var mysql = require('mysql');
 var nodemailer = require('nodemailer');
-var host = JSON.parse(fs.readFileSync('host_info.json', 'utf8'));
 var connection = mysql.createConnection({
 	host:'localhost', //localhost
 	port: 3306,
@@ -15,6 +14,23 @@ var connection = mysql.createConnection({
 	password: 'kys5522', //kys5522
 	database: 'mailer' 
 }); //커넥션 정의
+	var sql = "select * from ip_list";
+	connection.query(sql, function(error, rows, fields, results) {
+    if (error) {
+    	console.log(error);
+    	console.log('쿼리문에 오류가 있습니다.');
+    } else {
+    	console.log(rows);
+    	console.log('------------------------------------------------------------');
+    	console.log(fields);
+    	console.log('------------------------------------------------------------');
+    	console.log(results);
+    }
+
+	});
+
+var host = JSON.parse(fs.readFileSync('host_info.json', 'utf8'));
+
 var transport = nodemailer.createTransport("SMTP", {
     host: host.ip_list[ip_index]
 }); //SMTP 정의
@@ -90,19 +106,19 @@ function smtpSet() {
     } else {
     	console.timeEnd('read_time');
     	req_id = result.insertId;
-    	sendRequest(0);
+    	sendRequest(0, recvAddr);
     }
 
 	});
 }
 
-function sendRequest(count) {
+function sendRequest(count, data) {
 	console.time('sending_time');
-	var sql = "INSERT INTO mail_log (request_id, sender_address, reciver_address, mail_subject, mail_content, mail_code) VALUES (?, ?, ?, ?, ?, ?)";
+	var sql = "INSERT INTO mail_log (sender_address, reciver_address, mail_subject, mail_content, mail_code) VALUES (?, ?, ?, ?, ?)";
 	//Prepared Statement 사용
 	mailOptions = {
 		from: 'test@testing2.com',
-		to: recvAddr[count],
+		to: data[count],
 		subject: subject,
 		html: content
 	}; //메일 설정
@@ -111,7 +127,7 @@ function sendRequest(count) {
 	//메일 발송 요청
 	if (error) {
 		console.log(error);
-		var inserts = [req_id, mailOptions.from, recvAddr[count], subject, content, error.message];
+		var inserts = [mailOptions.from, data[count], subject, content, error.message];
 		sql = mysql.format(sql, inserts);
 		connection.query(sql, function (error, result, fields) {
     	//메일 전송 로그 기록
@@ -124,14 +140,16 @@ function sendRequest(count) {
     		}
 		});
 	} else {
-		code = response.message.substring(0, 9);
+		code = response.message
 		//if (Math.floor(Math.random() * 3) == 2) code = '421 4.3.2';
-		console.log('메일 전송 >> 요청 받은 횟수: ' + recvAddr.length + ' 보내는 메일 주소: ' + mailOptions.from + ' 결과: ' + response.message);
-		var inserts = [req_id, mailOptions.from, recvAddr[count], subject, content, code];
+		console.log('메일 전송 >> 요청 받은 횟수: ' + data.length + ' 보내는 메일 주소: ' + mailOptions.from + ' 결과: ' + response.message);
+		var inserts = [mailOptions.from, data[count], subject, content, code];
 		sql = mysql.format(sql, inserts);
-		if (code == '421 4.3.2') {
+		if (code.substring(0, 9) == '421 4.3.2') {
 			console.log('차단 응답이 도착하여 IP를 변경하며, 해당 메일부터 재전송합니다.');
-			ipChange();
+			var sql = "INSERT INTO ip_list (ip, blocked, block_msg, domain) VALUES (?, ?, ?, ?)";
+			var inserts = [mailOptions.from, 1, code, content, data[count]];
+			sql = mysql.format(sql, inserts);
 			return sendRequest(count);
 		}
 		connection.query(sql, function (error, result, fields) {
@@ -147,7 +165,7 @@ function sendRequest(count) {
 
 	count++;
 
-	if (recvAddr.length > count) {
+	if (data.length > count) {
 		sendRequest(count);
 	} else {
 		transport.close();
