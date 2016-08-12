@@ -1,2 +1,2 @@
 # Mailer
-link : http://223.130.121.106/
+link : http://ec2-52-79-79-243.ap-northeast-2.compute.amazonaws.com/
