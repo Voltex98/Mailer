@@ -85,6 +85,26 @@ $(function() {
     rowCheckDel();
   });
 
+  $('#mail-load').click(function() {
+    var mail = $('#mail-load-text').val();
+    $.ajax({ 
+      type: 'POST',  
+      url: '/load',  
+      data: {mail: mail},  
+      success: function(data) {
+        $("#send_list tr:not(:first)").remove();
+        $('#col1').text('발신자 주소');
+        $('#col2').text('요청 메일 수');
+        $('#col3').text('일시');
+        $('#col4').text('열람');
+        for (var i = 0; i < data.length; i++) {
+          $('#send_list > tbody:last').append('<tr><td>' + data[i].user_id + '</td><td>' + data[i].mail_count + '</td><td>' + data[i].timestamp + '</td><td><a class="view" href="javascript:mail_view('+data[i].id+');"'+'>상세 내역 보기</a>' +'</td></tr>');
+        }
+        console.log(data);
+      }
+    });
+  });
+
   $('[data-toggle="tooltip"]').tooltip(); 
 
   $('form').bind('keypress', function(e) {
@@ -100,7 +120,7 @@ $(function() {
   function rowCheckDel() {
     var $obj = $("input[name='chk']");
     var checkCount = $obj.size();
-    for (var i=checkCount; i>=0; i--) {
+    for (var i = checkCount; i >= 0; i--) {
       if ($obj.eq(i).is(":checked")) {
       $obj.eq(i).parent().parent().remove();
       mail_to.splice(i, 1);
@@ -113,13 +133,47 @@ $(function() {
   }
 
   function mail_submit() {
-    $.post("send", {mailsub: $('#mail1').val(), sender: $('#mailsender').val(), content: CKEDITOR.instances['editor'].getData(), mailto: mail_to.join()},
+    $.post("send", {mailsub: $('#mail1').val(), sender: $('#mail4').val(), content: CKEDITOR.instances['editor'].getData(), mailto: mail_to.join()},
       function(data) {
         alert(data);
     });
   }
 
 });
+</script>
+<script type="text/javascript">
+  function mail_view(id) {
+    $.ajax({
+      type: 'POST',  
+      url: '/view',  
+      data: {id: id},  
+      success: function(data) {
+        $('#send_list tr:not(:first)').remove();
+        $('#col1').text('수신자 주소');
+        $('#col2').text('전송 내역');
+        $('#col3').text('열람');
+        $('#col4').text('');
+        for (var i = 0; i < data.length; i++) {
+          $('#send_list > tbody:last').append('<tr><td>' + data[i].reciver_address + '</td><td>' + data[i].mail_code + '</td><td><a class="view2" href="javascript:content_view('+data[i].request_id+');"'+'>글 내용 보기</a>' +'</td></tr>');
+        }
+        console.log(data);
+      }
+    });
+  }
+
+  function content_view(id) {
+    $.ajax({
+      type: 'POST',  
+      url: '/cview',  
+      data: {id: id},  
+      success: function(data) {
+        console.log(data);
+        $('#content_popup').modal();
+        $('#mail-title').text('제목 : ' + data[0].subject);
+        $('#mail-content').html('내용 : ' + data[0].content);
+      }
+    });
+  }
 </script>
   <div class="site-wrapper">
     <div class="site-wrapper-inner">
@@ -143,7 +197,7 @@ $(function() {
                     </li>
                     <li id="mail-sub2" class="list-group-item">
                       <p id="p-sender"><b>보내는 사람 :</b></p>
-                      <input name="mailsender" type="text" id="mail1" class="form-control" placeholder="보내는 사람 입력">
+                      <input name="mailsender" type="text" id="mail4" class="form-control" placeholder="보내는 사람 입력">
                     </li>
                     <li id="mail-sub3" class="list-group-item">
                     <p id="p-to"><b>받는 사람 :</b></p>
@@ -165,10 +219,36 @@ $(function() {
             
             <div id="menu1" class="tab-pane">
               <h3>발송 내역</h3>
-              <p>발송 내역</p>
+              <input type="text" id="mail-load-text" class="form-control" placeholder="조회할 메일 입력">
+              <button id="mail-load" type="button" class="btn btn-default">발송 내역 확인</button>
+              <table id="send_list" class="table table-bordered">
+                        <thead>
+                        <tr>
+                          <th id="col1">발신자 주소</th>
+                          <th id="col2">요청 메일 수</th>
+                          <th id="col3">일시</th>
+                          <th id="col4">열람</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                      </table>
             </div>
-
           </div>
+
+          <div id="content_popup" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h5 class="modal-title" id="mail-title"></h4>
+                </div>
+                  <div class="modal-body">
+                    <div id="mail-content"></div>
+                  </div>
+              </div>
+            </div>
+          </div>
+
           <div id="list_popup" class="modal fade" role="dialog">
             <div class="modal-dialog">
               <div class="modal-content">
@@ -195,10 +275,12 @@ $(function() {
                   <div class="modal-body">
                     <div id="mail_list">
                       <table id="lst" class="table table-bordered">
+                        <thead>
                         <tr>
                           <th>모두 선택 : <input onclick="selectAll" type="checkbox" id="chk_all"></th>
                           <th>메일 주소</th>
                         </tr>
+                        </thead>
                         <tbody></tbody>
                       </table>
                       <button id="del" type="button" class="btn btn-default">선택 항목 삭제</button>
